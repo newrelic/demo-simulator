@@ -1,6 +1,9 @@
 [![New Relic Experimental header](https://github.com/newrelic/opensource-website/raw/master/src/images/categories/Experimental.png)](https://opensource.newrelic.com/oss-category/#new-relic-experimental)
 
-# Simulator
+# demo-simulator
+
+![Test](https://github.com/newrelic/demo-simulator/workflows/Test/badge.svg?event=push)
+
 A NodeJS server allowing users to run simulation to drive traffic either to a REST API or a web site using selenium based commands.
 
 ## Installing
