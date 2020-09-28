@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Home</title>
+    <script src="controlpanel.js" language="javascript"></script>
+    <script src="slider.js" language="javascript"></script>
+    <script src="scenario.js" language="javascript"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="main">
+        <div>
+            <h4>RPM: <span id="rpmOutput"></span></h4>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="10000" value="30" class="slider" id="rpmInput">
+            </div>
+        </div>
+        <div>
+            <h4>Available commands</h4>
+            <ul id="commands">
+                <li><a href="#" onclick="onCommandClick('httpGet', 'Enter a URL')">httpGet(url)</a></li>
+                <li><a href="#" onclick="onCommandClick('httpPostJson', 'Enter a URL', 'Enter a JSON payload')">httpPostJson(url, json)</a></li>
+                <li><a href="#" onclick="onCommandClick('trace')">trace</a></li>
+                <li><a href="#" onclick="onCommandClick('header', 'Enter a header key', 'Enter a header value')">header(key, value)</a></li>
+                <li><a href="#" onclick="onCommandClick('sleepMs', 'Enter a time to sleep in milliseconds')">sleepMs(number)</a></li>
+                <li><a href="#" onclick="onCommandClick('assertResponseContains', 'Enter the text the pervious fetch response should have')">assertResponseContains(message)</a></li>                
+            </ul>
+            <br/>
+        </div>
+        <br/>
+        <div>
+            <div id="serverStatsText"></div>
+        </div>
+    </div>
+    <div>
+        <div class="main">
+            <h4>Scenario
+                <p><textarea id="scenarioText" rows="25" cols="100"></textarea></p>
+            </h4>
+        </div>
+        <div>
+            <input type="button" id="submit" value="Submit" class="button"></input>
+        </div>
+    </div>
+
+    <script>
+        function onCommandClick(name, ...questions){
+            if (questions.length > 0){
+                params = getParams(questions)
+                if (params != null){
+                    scenario.addStep(name, params)
+                }
+            }
+            else{
+                scenario.addStep(name, [])
+            }
+        }
+
+        function getParams(questions){
+            params = []
+            questions.forEach(question => {
+                if (params != null){
+                    var param = window.prompt(question, "")
+                    if (param === null){
+                        // Cancel breaks out for adding a question
+                        params = null
+                        return
+                    }
+                    params.push(param)
+                }
+            })
+            return params
+        }
+
+        function init() {
+            controlpanel.init(document.getElementById("serverStatsText"))
+            slider.init(document.getElementById("rpmInput"), document.getElementById("rpmOutput"), scenario.onUpdate)
+            scenario.init(document.getElementById("scenarioText"), document.getElementById("submit"))
+        }
+
+        document.onreadystatechange = function () {
+            if (document.readyState == "complete") {
+                // document is ready. Do your stuff here
+                init()
+            }
+        }
+    </script>
+</body>
+</html>
