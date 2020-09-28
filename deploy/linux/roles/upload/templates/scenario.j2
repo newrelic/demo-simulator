@@ -1,0 +1,10 @@
+{
+    "id": "startScenario",
+    "rpm": 30,
+    "steps": [
+        {"name": "sleepMs", "params": [50]}
+        {% for item in endpoints %}
+          ,{"name": "httpGet", "params": ["{{ item }}"]} 
+        {% endfor %}
+    ]
+}

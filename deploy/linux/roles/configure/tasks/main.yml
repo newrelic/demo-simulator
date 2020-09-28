@@ -1,0 +1,14 @@
+---
+
+- debug:
+    msg: Configuring {{ service_id }} service
+
+- fail:
+    msg: "service_id is required"
+  when: service_id is not defined
+  
+- name: Get node path
+  shell: "whereis node | awk ' {print $2}'"
+  register: node_path
+
+- include_tasks: supervisord.yml

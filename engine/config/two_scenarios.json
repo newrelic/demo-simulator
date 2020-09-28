@@ -1,0 +1,26 @@
+[
+    {
+        "id": "scenario1",
+        "rpm": 10,
+        "maxCount": 6,
+        "steps": [
+            {"name": "httpGet", "params": ["http://localhost:5001/api/inventory"]},
+            {"name": "assertResponseContains", "params": ["Item_1"]},
+            {"name": "sleepMs", "params": [100]},
+            
+            {"name": "httpGet", "params": ["http://localhost:5001/api/inventory/10"]},
+            {"name": "assertResponseContains", "params": ["Item_10"]},
+            {"name": "sleepMs", "params": [100]}
+        ]
+    },
+    {
+        "id": "scenario2",
+        "rpm": 10,
+        "maxCount": 6,
+        "steps": [
+            {"name": "httpGet", "params": ["http://localhost:5001/api/validateMessage?message=blah"]},
+            {"name": "assertResponseContains", "params": ["\"result\": true"]},
+            {"name": "sleepMs", "params": [100]}
+        ]
+    }
+]

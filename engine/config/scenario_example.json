@@ -1,0 +1,18 @@
+{
+    "id": "exampleScenario",
+    "rpm": 30,
+    "maxCount": 5,
+    "steps": [
+        {"name": "httpGet", "params": ["http://localhost:5000/api/inventory"]},
+        {"name": "assertResponseContains", "params": ["Item_1"]},
+        {"name": "sleepMs", "params": [100]},
+        
+        {"name": "httpGet", "params": ["http://localhost:5000/api/inventory/10"]},
+        {"name": "assertResponseContains", "params": ["Item_10"]},
+        {"name": "sleepMs", "params": [100]},
+        
+        {"name": "httpGet", "params": ["http://localhost:5000/api/validateMessage?message=blah"]},
+        {"name": "assertResponseContains", "params": ["\"result\": true"]},
+        {"name": "sleepMs", "params": [100]}
+    ]
+}

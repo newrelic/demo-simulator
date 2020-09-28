@@ -1,0 +1,19 @@
+--- 
+
+- name: "Create {{ service_id }} directory"
+  file:
+    path: ~/{{ service_id }}
+    state: directory
+
+- synchronize: 
+    dest: ~/{{ service_id }}
+    src: ../../../../../engine/
+    rsync_opts:
+      - "--exclude=node_modules/*"
+      - "--exclude=.git*"
+      - "--exclude=README.md*"
+
+- name: NPM install
+  command: bash -lc "npm install"
+  args: 
+    chdir: ~/{{ service_id }}

@@ -1,0 +1,7 @@
+---
+
+- include_tasks: installSupervisord.yml
+
+- include_tasks: installNodeJs.yml
+
+- include_tasks: installSeleniumDependencies.yml

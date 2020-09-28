@@ -1,0 +1,34 @@
+---
+
+- debug:
+    msg: Upload {{ service_id }} service
+
+- fail:
+    msg: "service_id is required"
+  when: service_id is not defined
+
+- fail:
+    msg: "service_port is required"
+  when: service_port is not defined
+
+- name: Remove file eventual start scenario
+  file:
+    path: ~/{{ service_id }}/startScenario.json
+    state: absent
+
+- include_tasks: sync_service.yml
+
+- template:
+    src: env.j2
+    dest: ~/{{ service_id }}/.env
+
+- stat:
+    path: ~/{{ service_id }}/startScenario.json
+  register: scenario_exist
+
+- template:
+    src: scenario.j2
+    dest: ~/{{ service_id }}/startScenario.json
+  when: scenario_exist is defined and scenario_exist.stat.exists == false
+
+- include_tasks: create_artifact_params.yml

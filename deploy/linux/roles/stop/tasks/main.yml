@@ -1,0 +1,23 @@
+---
+
+- fail:
+    msg: "service_id is required"
+  when: service_id is not defined
+
+- name: check if simulator {{ service_id }} is running
+  shell: ps aux | grep node | grep {{ service_id }} | grep -v grep | wc -l
+  register: simulator_running
+
+- name: supervisord stop service {{ service_id }}
+  shell: /usr/bin/supervisorctl stop {{ service_id }}
+  when: simulator_running.stdout|int == 1
+  args:
+    chdir: /etc/supervisor/conf.d
+  become: true
+
+- name: supervisord remove service {{ service_id }}
+  shell: /usr/bin/supervisorctl remove {{ service_id }}
+  when: simulator_running.stdout|int == 1
+  args:
+    chdir: /etc/supervisor/conf.d
+  become: true
