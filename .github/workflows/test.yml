@@ -1,0 +1,115 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        id: install
+        uses: bahmutov/npm-install@v1
+        with:
+          working-directory: engine
+
+      - name: NPM Lint
+        id: lint
+        if: ${{ always() }}
+        working-directory: engine
+        run: npm run lint
+
+      - name: NPM Test
+        id: test
+        if: ${{ always() }}
+        working-directory: engine
+        run: npm run test
+      
+      - name: Build Result Slack Notification
+        uses:  8398a7/action-slack@v3
+        if: always() && github.event_name == 'push'
+        with:
+          author_name: GitHub Actions
+          status: custom
+          fields: commit,repo,ref,author,eventName,message,workflow
+          custom_payload: |
+            {
+              username: "GitHub Actions",
+              icon_emoji: ":octocat:",
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? '#43cc11' : '${{ job.status }}' === 'failure' ? '#e05d44' : '#dfb317',
+                blocks: [
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: `Build for ${process.env.AS_REPO}`
+                    }
+                  },
+                  {
+                    type: "section",
+                    fields: [
+                      {
+                        type: "mrkdwn",
+                        text: `*Commit:*\n${process.env.AS_COMMIT}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Author:*\n${process.env.AS_AUTHOR}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Branch:*\n${process.env.AS_REF}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Message:*\n${process.env.AS_MESSAGE}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Type:*\n${process.env.AS_EVENT_NAME}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: "*PR:*\n${{ github.event.pull_request.html_url }}"
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Workflow:*\n${ process.env.AS_WORKFLOW }`
+                      }
+                    ]
+                  },
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: [
+                        "*Result:*",
+                        `• ${ ${{ steps.install.outcome == 'success' }} === true ? '✅' : '❌' } Install dependencies: ${{ steps.install.outcome }}`,
+                        `• ${ ${{ steps.lint.outcome == 'success' }} === true ? '✅' : '❌' } Lint: ${{ steps.lint.outcome }}`,
+                        `• ${ ${{ steps.test.outcome == 'success' }} === true ? '✅' : '❌' } Test: ${{ steps.test.outcome }}`
+                      ].join('\n')
+                    }
+                  },
+                  {
+                    type: "context",
+                    elements: [
+                      {
+                        type: "image",
+                        image_url: "https://avatars2.githubusercontent.com/in/15368",
+                        alt_text: "Github Actions"
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: "This message was created automatically by GitHub Actions."
+                      }
+                    ]
+                  }
+                ]
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
