@@ -20,7 +20,7 @@
   register: chromedriver_exist
 
 - name: Downloading chromedriver
-  shell: 'wget http://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip'
+  shell: 'wget https://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_linux64.zip'
   when: chromedriver_exist is defined and chromedriver_exist.stat.exists == false
 
 - name: Unzip chromedriver
