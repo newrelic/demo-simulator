@@ -19,8 +19,16 @@
     path: ~/chromedriver
   register: chromedriver_exist
 
+- name: Find latest version of chrome driver
+  shell: 'curl "https://chromedriver.storage.googleapis.com/LATEST_RELEASE"'
+  register: chrome_version
+
+- fail:
+    msg: "Could not lookup latest version for chrome driver from https://chromedriver.storage.googleapis.com/LATEST_RELEASE"
+  when: chrome_version is failed
+
 - name: Downloading chromedriver
-  shell: 'wget https://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_linux64.zip'
+  shell: "wget https://chromedriver.storage.googleapis.com/{{ chrome_version.stdout }}/chromedriver_linux64.zip"
   when: chromedriver_exist is defined and chromedriver_exist.stat.exists == false
 
 - name: Unzip chromedriver
