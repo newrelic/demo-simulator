@@ -5,3 +5,5 @@
 - include_tasks: installNodeJs.yml
 
 - include_tasks: installSeleniumDependencies.yml
+
+- include_tasks: installJQ.yml

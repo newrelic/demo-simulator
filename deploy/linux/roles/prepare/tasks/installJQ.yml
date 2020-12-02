@@ -1,0 +1,7 @@
+---
+
+- name: install JQ
+  yum:
+    name: jq
+    state: installed
+  become: yes
