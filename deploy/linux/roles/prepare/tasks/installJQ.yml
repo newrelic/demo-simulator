@@ -1,5 +1,11 @@
 ---
 
+- name: install epel release to enusre that JQ is able to be installed most centos versions
+  yum:
+    name: epel-release
+    state: installed
+  become: yes
+
 - name: install JQ
   yum:
     name: jq
