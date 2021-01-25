@@ -21,10 +21,10 @@
     become: yes
     when: pip_installed.stdout|int == 1 and pip_local.stdout|int == 0
   - name: Installing latest pip - fetch
-    shell: curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    shell: curl -sSL https://bootstrap.pypa.io/2.7/get-pip.py -o get-pip.py
     when: (pip_installed.stdout|int == 0) or (pip_installed.stdout|int == 1 and pip_local.stdout|int == 0)
   - name: Installing pip
-    shell: python get-pip.py --force-reinstall
+    shell: python get-pip.py "pip < 21.0" --force-reinstall
     become: yes
     when: (pip_installed.stdout|int == 0) or (pip_installed.stdout|int == 1 and pip_local.stdout|int == 0)
 
