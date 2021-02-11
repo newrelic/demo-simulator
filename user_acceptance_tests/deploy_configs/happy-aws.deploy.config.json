@@ -1,0 +1,43 @@
+{
+    "services": [
+        {
+            "id": "simulator",
+            "local_source_path": "demo-simulator",
+            "deploy_script_path": "deploy/linux/roles",
+            "port": 5001,
+            "destinations": [
+                "host"
+            ],
+            "params": {
+                "delay_start_ms": 5000
+            },
+            "files": [
+                {
+                    "destination_filepath": "engine/startScenario.json",
+                    "content": [
+                        {
+                            "id": "basic_traffic",
+                            "rpm": 10,
+                            "steps": [
+                                {
+                                    "name": "httpGet",
+                                    "params": [
+                                        "localhost:3001/api/inventory"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "resources": [
+        {
+            "id": "host",
+            "provider": "aws",
+            "type": "ec2",
+            "size": "t2.micro"
+        }
+    ]
+}

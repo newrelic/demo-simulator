@@ -1,0 +1,182 @@
+name: User Acceptance Tests
+
+on: [pull_request, workflow_dispatch]
+
+env:
+  TRON_FOLDER: demo-simulator
+
+jobs:
+  user-acceptance-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        cloud_provider: [aws, azure, gcp]
+        scenario: [happy]
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: 2.7
+
+      - name: pull v3 deployer image
+        run: docker pull ghcr.io/newrelic/deployer:latest
+
+      - name: general setup
+        env:
+          USER_CONFIG: ${{ secrets.UAT_USER_CONFIG }}
+        run: |
+          rm -rf configs $TRON_FOLDER tmp
+          mkdir configs $TRON_FOLDER tmp
+          cp ./user_acceptance_tests/deploy_configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json configs
+          cp -R deploy $TRON_FOLDER
+          cp -R engine $TRON_FOLDER
+          echo "$USER_CONFIG" > configs/uat-$TRON_FOLDER-${{ github.run_id }}.user.credentials.local.json
+          bundle install --gemfile=user_acceptance_tests/tests/Gemfile
+
+      - name: aws setup
+        env:
+          PEM_KEY: ${{ secrets.PEM_KEY }}
+        run: |
+          echo "$PEM_KEY" > configs/uat-ca.pem
+          chmod 400 configs/uat-ca.pem
+
+      - name: azure setup
+        env:
+          ID_RSA_PUB: ${{ secrets.UAT_AZURE_ID_RSA_PUB_FILE }}
+          ID_RSA: ${{ secrets.UAT_AZURE_ID_RSA_FILE }}
+        run: |
+          ssh-keygen -m PEM -t rsa -b 4096 -f $HOME/.ssh/id_rsa -q -N ""
+          mv $HOME/.ssh configs
+
+      - name: gcp setup
+        env:
+          UAT_GCP_PEM_FILE: ${{ secrets.UAT_GCP_PEM_FILE }}
+          UAT_GCP_SERVICEACCOUNT_FILE: ${{ secrets.UAT_GCP_SERVICEACCOUNT_FILE }}
+        run: |
+          echo "$UAT_GCP_PEM_FILE" > $GITHUB_WORKSPACE/configs/compute-user.pem
+          chmod 400 $GITHUB_WORKSPACE/configs/compute-user.pem
+          echo "$UAT_GCP_SERVICEACCOUNT_FILE" > $GITHUB_WORKSPACE/configs/demo-newrelic-staging-gcp-service-account.json
+
+      - name: debug ls - configs
+        run: ls $GITHUB_WORKSPACE/configs
+
+      - name: run deployment
+        id: deployment
+        run: |
+          docker run -t \
+          -v $GITHUB_WORKSPACE/$TRON_FOLDER:/mnt/deployer/$TRON_FOLDER \
+          -v $GITHUB_WORKSPACE/configs:/mnt/deployer/configs \
+          -v $GITHUB_WORKSPACE/tmp:/tmp \
+          ghcr.io/newrelic/deployer:latest \
+          main.rb -d /mnt/deployer/configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json -l debug \
+          -o /tmp/output.json
+
+      - name: debug ls - tmp
+        run: |
+          ls tmp
+
+      - name: run tests
+        id: test
+        run: ruby ./user_acceptance_tests/tests/${{ matrix.scenario }}.rb
+        env:
+          TEST_INPUT_FILE_LOCATION: tmp/output.json
+
+      - name: run teardown
+        if: always()
+        run: |
+          docker run -t \
+          -v $GITHUB_WORKSPACE/$TRON_FOLDER:/mnt/deployer/$TRON_FOLDER \
+          -v $GITHUB_WORKSPACE/configs:/mnt/deployer/configs \
+          -v $GITHUB_WORKSPACE/tmp:/tmp \
+          ghcr.io/newrelic/deployer:latest \
+          main.rb -d /mnt/deployer/configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json -t -l debug
+
+      - name: slack notification
+        uses:  8398a7/action-slack@v3
+        if: always() && github.event_name == 'push'
+        with:
+          author_name: GitHub Actions
+          status: custom
+          fields: commit,repo,ref,author,eventName,message,workflow
+          custom_payload: |
+            {
+              username: "GitHub Actions",
+              icon_emoji: ":octocat:",
+              attachments: [{
+                color: '${{ job.status }}' === 'success' ? '#43cc11' : '${{ job.status }}' === 'failure' ? '#e05d44' : '#dfb317',
+                blocks: [
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: `Build for ${process.env.AS_REPO}`
+                    }
+                  },
+                  {
+                    type: "section",
+                    fields: [
+                      {
+                        type: "mrkdwn",
+                        text: `*Commit:*\n${process.env.AS_COMMIT}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Author:*\n${process.env.AS_AUTHOR}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Branch:*\n${process.env.AS_REF}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Message:*\n${process.env.AS_MESSAGE}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Type:*\n${process.env.AS_EVENT_NAME}`
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: "*PR:*\n${{ github.event.pull_request.html_url }}"
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: `*Workflow:*\n${ process.env.AS_WORKFLOW }`
+                      }
+                    ]
+                  },
+                  {
+                    type: "section",
+                    text: {
+                      type: "mrkdwn",
+                      text: [
+                        "*Result:*",
+                        `• ${ ${{ steps.test.outcome == 'success' }} === true ? '✅' : '❌' } Test (${{ matrix.cloud_provider }}, ${{ matrix.scenario }}): ${{ steps.test.outcome }}`
+                      ].join('\n')
+                    }
+                  },
+                  {
+                    type: "context",
+                    elements: [
+                      {
+                        type: "image",
+                        image_url: "https://avatars2.githubusercontent.com/in/15368",
+                        alt_text: "Github Actions"
+                      },
+                      {
+                        type: "mrkdwn",
+                        text: "This message was created automatically by GitHub Actions."
+                      }
+                    ]
+                  }
+                ]
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
