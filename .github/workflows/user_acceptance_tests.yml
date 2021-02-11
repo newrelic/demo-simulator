@@ -35,7 +35,7 @@ jobs:
           cp ./user_acceptance_tests/deploy_configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json configs
           cp -R deploy $TRON_FOLDER
           cp -R engine $TRON_FOLDER
-          echo "$USER_CONFIG" > configs/uat-$TRON_FOLDER.user.credentials.local.json
+          echo "$USER_CONFIG" > configs/uat-$TRON_FOLDER-${{ github.run_id }}.user.credentials.local.json
           bundle install --gemfile=user_acceptance_tests/tests/Gemfile
 
       - name: aws setup
