@@ -6,7 +6,7 @@ require 'json'
 describe 'Deployment Tests' do
   let(:service_url) do
     get_service_url_json(
-      read_test_input(ENV['TEST_INPUT_FILE_LOCATION'])
+      get_test_input(ENV['TEST_INPUT_FILE_LOCATION'])
     )
   end
 
@@ -56,7 +56,7 @@ describe 'Deployment Tests' do
     expect(response.code).must_equal(200)
   end
 
-  def read_test_input(file_path)
+  def get_test_input(file_path)
     test_input = File.read(file_path)
     test_input
   end

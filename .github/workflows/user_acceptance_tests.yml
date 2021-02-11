@@ -62,6 +62,9 @@ jobs:
           chmod 400 $GITHUB_WORKSPACE/configs/compute-user.pem
           echo "$UAT_GCP_SERVICEACCOUNT_FILE" > $GITHUB_WORKSPACE/configs/demo-newrelic-staging-gcp-service-account.json
 
+      - name: debug ls - configs
+        run: ls $GITHUB_WORKSPACE/configs
+
       - name: run deployment
         id: deployment
         run: |
@@ -72,6 +75,10 @@ jobs:
           ghcr.io/newrelic/deployer:latest \
           main.rb -d /mnt/deployer/configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json -l debug \
           -o /tmp/output.json
+
+      - name: debug ls - tmp
+        run: |
+          ls tmp
 
       - name: run tests
         id: test
