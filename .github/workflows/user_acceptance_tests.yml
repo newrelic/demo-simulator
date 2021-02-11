@@ -62,9 +62,6 @@ jobs:
           chmod 400 $GITHUB_WORKSPACE/configs/compute-user.pem
           echo "$UAT_GCP_SERVICEACCOUNT_FILE" > $GITHUB_WORKSPACE/configs/demo-newrelic-staging-gcp-service-account.json
 
-      - name: debug ls - configs
-        run: ls $GITHUB_WORKSPACE/configs
-
       - name: run deployment
         id: deployment
         run: |
@@ -76,15 +73,10 @@ jobs:
           main.rb -d /mnt/deployer/configs/${{ matrix.scenario }}-${{ matrix.cloud_provider }}.deploy.config.json -l debug \
           -o /tmp/output.json
 
-      - name: debug ls - tmp
-        run: |
-          ls tmp
-
       - name: run tests
         id: test
         run: ruby ./user_acceptance_tests/tests/${{ matrix.scenario }}.rb
         env:
-          #TEST_INPUT_FILE_LOCATION: tmp/simulator-testing-${{ matrix.scenario }}-${{ matrix.cloud_provider }}/deploy_summary.txt
           TEST_INPUT_FILE_LOCATION: tmp/output.json
 
       - name: run teardown
