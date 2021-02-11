@@ -22,7 +22,11 @@ For a production usage, run "node server.js".
 Upon start, you should be able to hit http://localhost:3000/ to get the default index.html page.
 
 ## Testing
+### Unit Tests
 After cloning, run "npm test" to run all the unit tests.
+
+### User Acceptance Tests
+Click [here](user_acceptance_tests/README.md) for more information on our user acceptance tests.
 
 ## API
 ### /api/health
