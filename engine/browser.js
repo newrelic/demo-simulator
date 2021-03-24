@@ -19,10 +19,12 @@ class Browser{
         options.addArguments("--disable-dev-shm-usage")
         options.addArguments("--ignore-certificate-errors")
         options.headless()
+
         this.browser = new webdriver.Builder()
           .forBrowser('chrome')
           .setChromeOptions(options)
           .build()
+
         logger.info(this.scenarioName, 'browser built')
         return Promise.resolve()
     }

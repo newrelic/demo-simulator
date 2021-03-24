@@ -1,0 +1,34 @@
+name: publish docker image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Login to GitHub Container Registry
+          run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+        - name: Parse version
+          run: echo '::set-output name=version::$(jq -r ".version" engine/package.json)'
+          id: parse_version
+
+        - name: Output version
+          run: echo "Version ${{ steps.parse_version.outputs.version }}"
+
+        - name: Build & tag image
+          run: |
+            docker build -f Dockerfile . \
+              -t ghcr.io/newrelic/demo-simulator:${{ steps.parse_version.outputs.version }}\
+              -t ghcr.io/newrelic/demo-simulator:latest
+
+        - name: Publish image
+          run: |
+            docker push ghcr.io/newrelic/demo-simulator:${{ steps.parse_version.outputs.version }}
+            docker push ghcr.io/newrelic/demo-simulator:latest

@@ -29,7 +29,7 @@
     "log": "^3.2.0",
     "log-node": "^3.2.1",
     "node-fetch": "^2.3.0",
-    "selenium-webdriver": "^4.0.0-alpha.5",
+    "selenium-webdriver": "^4.0.0-beta.2",
     "stringify-object": "^3.3.0",
     "tmp": "^0.1.0",
     "uuid": "^3.3.2",
