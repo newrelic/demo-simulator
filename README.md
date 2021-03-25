@@ -15,11 +15,54 @@ A NodeJS server allowing users to run simulation to drive traffic either to a RE
 After cloning the repository, run a "npm install" to pull all the needed dependencies.
 
 ## Running
+### Development
 For a developer, run "npm start" to start the server. This uses "nodemon" to watch for any changes on the local disk and restart the server.
 
 For a production usage, run "node server.js".
 
 Upon start, you should be able to hit http://localhost:3000/ to get the default index.html page.
+
+### Docker
+The demo-simulator can be deployed using Docker, with a few things to be aware of. 
+Browser based tests use a Selenium WebDriver to control the browser, but the demo-simulator container is incapable of running a browser.
+Luckily, Selenium offers a [Chrome WebDriver](https://github.com/SeleniumHQ/docker-selenium#standalone) image that the demo-simulator can use to execute browser actions.
+If you're not running any scenarios that require a browser, then you don't have to worry about this.
+
+The docker image can be built locally or pulled down from the repository.
+#### Build
+```shell
+docker build -t demo-simulator .
+```
+#### Pull
+``` shell
+docker pull ghcr.io/newrelic/demo-simulator
+```
+
+#### Deploying
+The container exposes port `5000` by default and can be run like so:
+
+``` shell
+docker run -p 5000:5000 demo-simulator
+```
+
+#### Deploying for browser based scenarios
+
+``` shell
+docker run \
+  -p 5000:5000 \
+  -e "SELENIUM_REMOTE_URL=<url of the selenium docker image>/wd/hub" \
+  demo-simulator 
+```
+
+#### Deploying with a startup scenario
+The demo-simulator can accept a scenario file to begin executed at startup.
+``` shell
+docker run \
+  -p 5000:5000 \
+  -v <path to my cool scenario>:/mnt/simulator/cool_scenario.json \
+  -e "START_SCENARIO=/mnt/simulator/cool_scenario.json" \
+  demo-simulator
+```
 
 ## Testing
 ### Unit Tests
