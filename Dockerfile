@@ -1,8 +1,7 @@
 FROM node:lts
 
-RUN apt-get clean all
-RUN apt-get update
-RUN apt update
+RUN apt-get update && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /mnt/simulator
 WORKDIR /mnt/simulator
