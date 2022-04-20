@@ -4,14 +4,24 @@
     msg: "service_id is required"
   when: service_id is not defined
 
+- name: Get supervisorctl path
+  shell: which supervisorctl
+  register: supervisorctl_path
+
+- name: supervisord reread config
+  shell: '{{ supervisorctl_path.stdout }} reread'
+  args:
+    chdir: /etc/supervisor/conf.d
+  become: true
+
 - name: supervisord add service {{ service_id }}
-  shell: /usr/bin/supervisorctl add {{ service_id }}
+  shell: "{{ supervisorctl_path.stdout }} add {{ service_id }}"
   args:
     chdir: /etc/supervisor/conf.d
   become: true
 
 - name: supervisord start service {{ service_id }}
-  shell: /usr/bin/supervisorctl start {{ service_id }}
+  shell: "{{ supervisorctl_path.stdout }} start {{ service_id }}"
   args:
     chdir: /etc/supervisor/conf.d
   become: true
