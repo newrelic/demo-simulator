@@ -112,7 +112,7 @@ class Vocabulary{
     
     async postJson(url, json) {
         this.scope.lastResponse = null
-        var response = await util.postAsJson(url, JSON.stringify(json), this.scope.headers)
+        var response = await util.postAsJson(url, json, this.scope.headers)
         this.scope.lastResponse = JSON.stringify(response)
         logger.info(this.scenarioName, `postJson(${url}) responseLength:${this.scope.lastResponse.length}`)
         return Promise.resolve()
