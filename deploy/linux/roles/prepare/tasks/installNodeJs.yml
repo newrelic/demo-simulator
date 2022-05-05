@@ -1,16 +1,15 @@
 ---
 
-- name: nvm
-  shell: >
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-  args:
-    creates: "{{ ansible_env.HOME }}/.nvm/nvm.sh"
+  - name: reference nodesource on version 16
+    shell: 'curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -'
+    become: yes
 
-- name: Installing node through nvm
-  shell: '. ~/.nvm/nvm.sh && nvm install node'
+  - name: install nodejs from nodesource
+    shell: 'yum install nodejs --enablerepo=nodesource -y'
+    become: yes
 
-- name: install build essentials for native modules
-  yum:
-    name: gcc-c++
-    state: present
-  become: yes
+  - name: install build essentials for native modules
+    yum:
+      name: gcc-c++
+      state: present
+    become: yes
