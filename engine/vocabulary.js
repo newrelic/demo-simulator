@@ -76,6 +76,13 @@ class Vocabulary{
         return Promise.resolve()
     }
 
+    async newrelicLog(url, message) {
+        var data = `{"message": "${message}"}`
+        logger.info(this.scenarioName, 'newrelicLog', url, data)
+        await this.postJson(`${url}`, data)
+        return Promise.resolve()
+    }
+
     assertResponseContains(message){
         logger.info(this.scenarioName, 'assertResponseContains', message)
         if (this.scope.lastResponse == null || this.scope.lastResponse.includes(message)==false){
