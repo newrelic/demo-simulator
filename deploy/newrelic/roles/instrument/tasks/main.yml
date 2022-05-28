@@ -1,0 +1,98 @@
+- name: Ensure newrelic_license_key is defined
+  fail:
+    msg: "newrelic_license_key is required for configuring newrelic agent"
+  when: newrelic_license_key is not defined
+
+- name: Find package.json files
+  find:
+    paths: "/home/{{ remote_user }}/{{ service_id }}"
+    contains: ".*dependencies*."
+    patterns: "package.json"
+  register: package_found
+
+- name: set filename fact
+  set_fact:
+    package_file: "{{ item['path'] }}"
+  with_items: "{{ package_found.files }}"
+
+- fail:
+    msg: "Could not find any package.json file having dependencies, can't set instrumentation"
+  when: package_file is not defined
+
+- debug:
+    msg: Files {{ package_file }} and directory {{ package_file | dirname }}
+  when: package_file is defined
+
+- name: Install NR NodeJS agent
+  shell: "npm install newrelic --save"
+  args:
+    chdir: "{{ package_file | dirname }}"
+
+- name: Install NR NodeJS additional metrics
+  shell: "npm install @newrelic/native-metrics --save"
+  args:
+    chdir: "{{ package_file | dirname }}"
+
+- name: Copy newrelic.js to service root
+  shell: "cp node_modules/newrelic/newrelic.js newrelic.js"
+  args:
+    chdir: "{{ package_file | dirname }}"
+
+- replace:
+    dest: "{{package_file | dirname}}/newrelic.js"
+    regexp: 'My Application'
+    replace: '{{ service_display_name }}'
+    backup: yes
+
+- name: Add newrelic collector url
+  lineinfile:
+    path: "{{package_file | dirname}}/newrelic.js"
+    line: "host: '{{ newrelic_collector_url }}',"
+    insertafter: 'license key here'
+  when: newrelic_collector_url is defined
+
+- replace:
+    dest: "{{package_file | dirname}}/newrelic.js"
+    regexp: 'license key here'
+    replace: '{{ newrelic_license_key }}'
+
+- name: Format tags into a list
+  set_fact:
+    tags_list: "{{ tags_list | default([]) }} + [ '{{item.key}}{{':'}}{{item.value}}' ]"
+  loop: "{{ (tags|default({}))|dict2items }}"
+  when: tags is defined
+
+- name: Any any tags
+  blockinfile:
+    path: "{{ package_file | dirname }}/newrelic.js"
+    insertafter: ".*exports.config*."
+    marker: "// {mark} Add service tags"
+    block: |
+      labels: '{{tags_list| join(";")}}',
+  when: tags_list is defined
+
+- name: Find node main js files
+  find:
+    paths: "{{package_file | dirname}}"
+    contains: ".*app[.]listen[(]*."
+    patterns: "*.js"
+  register: main_found
+
+- name: set main filename fact
+  set_fact:
+    main_file: "{{ item['path']}}"
+  with_items: "{{ main_found.files }}"
+
+- fail:
+    msg: "Could not find any main js file with 'app.listen(' which is required, can't set instrumentation"
+  when: main_file is not defined
+
+- debug:
+    msg: Files {{ main_file }} and directory {{ main_file | dirname }}
+  when: main_file is defined
+
+- name: Add new relic require statement to main js at the top of the file
+  lineinfile:
+    path: "{{ main_file }}"
+    line: "var newrelic = require('newrelic')"
+    insertbefore: BOF
