@@ -2,7 +2,7 @@
 const winston = require('winston')
 const stringifyObject = require('stringify-object')
 
-const logger = winston.createLogger()
+const logger = winston.createLogger({})
 
 class Logger{ 
 
