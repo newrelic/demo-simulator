@@ -31,4 +31,32 @@
     dest: ~/{{ service_id }}/startScenario.json
   when: scenario_exist is defined and scenario_exist.stat.exists == false
 
+# Main API
+- name: Replace any NR region specific URL - EU
+  ansible.builtin.replace:
+    path: ~/{{ service_id }}/startScenario.json
+    regexp: '/api.newrelic.com/'
+    replace: '/api.eu.newrelic.com/'
+  when: newrelic_region is defined and (newrelic_region|upper) == "EU"
+- name: Replace any NR region specific URL - Staging
+  ansible.builtin.replace:
+    path: ~/{{ service_id }}/startScenario.json
+    regexp: '/api.newrelic.com/'
+    replace: '/staging-api.newrelic.com/'
+  when: newrelic_region is defined and (newrelic_region|upper) == "STAGING"
+
+# Log API
+- name: Replace any NR region specific URL - EU
+  ansible.builtin.replace:
+    path: ~/{{ service_id }}/startScenario.json
+    regexp: 'log-api.newrelic.com'
+    replace: 'log-api.eu.newrelic.com'
+  when: newrelic_region is defined and (newrelic_region|upper) == "EU"
+- name: Replace any NR region specific URL - Staging
+  ansible.builtin.replace:
+    path: ~/{{ service_id }}/startScenario.json
+    regexp: 'log-api.newrelic.com'
+    replace: 'staging-log-api.newrelic.com'
+  when: newrelic_region is defined and (newrelic_region|upper) == "STAGING"
+
 - include_tasks: create_artifact_params.yml
