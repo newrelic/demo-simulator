@@ -49,14 +49,14 @@
 - name: Replace any NR region specific URL - EU
   ansible.builtin.replace:
     path: ~/{{ service_id }}/startScenario.json
-    regexp: 'log-api.newrelic.com'
-    replace: 'log-api.eu.newrelic.com'
+    regexp: '/log-api.newrelic.com/'
+    replace: '/log-api.eu.newrelic.com/'
   when: newrelic_region is defined and (newrelic_region|upper) == "EU"
 - name: Replace any NR region specific URL - Staging
   ansible.builtin.replace:
     path: ~/{{ service_id }}/startScenario.json
-    regexp: 'log-api.newrelic.com'
-    replace: 'staging-log-api.newrelic.com'
+    regexp: '/log-api.newrelic.com/'
+    replace: '/staging-log-api.newrelic.com/'
   when: newrelic_region is defined and (newrelic_region|upper) == "STAGING"
 
 - include_tasks: create_artifact_params.yml
