@@ -47,12 +47,12 @@
     file: path=/var/run/supervisor state=directory
     become: yes
 
-  - synchronize:
+  - ansible.posix.synchronize:
       src: supervisord.conf
       dest: /etc
     become: yes
 
-  - synchronize:
+  - ansible.posix.synchronize:
       src: init.d-supervisord
       dest: /etc/init.d/supervisord
     become: yes
