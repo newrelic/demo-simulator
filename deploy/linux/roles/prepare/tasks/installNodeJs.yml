@@ -1,11 +1,11 @@
 ---
 
-  - name: reference nodesource on version 16
-    shell: 'curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -'
+  - name: download nodejs rpm
+    shell: 'yum install https://rpm.nodesource.com/pub_16.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y'
     become: yes
 
   - name: install nodejs from nodesource
-    shell: 'yum install nodejs --enablerepo=nodesource -y'
+    shell: 'yum install nodejs -y --setopt=nodesource-nodejs.module_hotfixes=1'
     become: yes
 
   - name: install build essentials for native modules
